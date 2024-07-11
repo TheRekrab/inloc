@@ -29,7 +29,7 @@ fn main() {
             continue;
         }
         println!("\n==== {} ====", url.bold().red());
-        println!("found ip: {}", ip_addrs.iter().map(|ip| format!("{}:\n{}", ip.bold().cyan(), ip_locator::locate(ip))).collect::<Vec<String>>().join("\n\n"));
+        println!("found ip(s):\n{}", ip_addrs.iter().map(|ip| format!("{}:\n{}", ip.bold().cyan(), ip_locator::locate(ip))).collect::<Vec<String>>().join("\n\n"));
     }
 
     for ip in &args.ips {
