@@ -500,6 +500,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "inloc"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "colored",
+ "reqwest",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "ipnet"
 version = "2.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -597,17 +608,6 @@ dependencies = [
  "security-framework",
  "security-framework-sys",
  "tempfile",
-]
-
-[[package]]
-name = "nslookup_rs"
-version = "0.1.0"
-dependencies = [
- "clap",
- "colored",
- "reqwest",
- "serde",
- "serde_json",
 ]
 
 [[package]]
