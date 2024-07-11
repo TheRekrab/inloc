@@ -4,7 +4,7 @@ Hello! This is a tool that you can use to not only perform DNS requests on a URL
 This information includes real-world location data, isp info, and an organization name (if applicable).
 It also has *colors* 🎨!
 
-## Usage 
+## Usage
 
 The tool is very simple to use:
 
@@ -28,4 +28,12 @@ found ip: 93.184.215.14:
 	region/state: England
 	city: London
 	isp: Edgecast Inc.
+```
+
+## Installation
+
+Installing the exectuable to path is a breeze! Just navigate to the project folder, then run this command:
+
+```bash
+$ cargo install --path .
 ```
