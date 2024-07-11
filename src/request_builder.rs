@@ -35,15 +35,19 @@ fn get_header(id: u16, opcode: u8, truncate: bool, recurse: bool, qdcount: u16) 
     message
 }
 
-fn get_labels(url: String) -> Vec<String> {
-    url.split(".").map(String::from).collect()
+fn get_labels(url: &str) -> Vec<String> {
+    url.split('.').map(String::from).collect()
 }
 
-fn get_qname_bytes(url: String) -> Vec<u8> {
+fn get_qname_bytes(url: &str) -> Vec<u8> {
     let mut bytes = Vec::new();
 
     for label in get_labels(url) {
-        bytes.push(label.len() as u8);
+        let Ok(size) = u8::try_from(label.len()) else {
+            println!("label is too large");
+            std::process::exit(1);
+        };
+        bytes.push(size);
         bytes.extend_from_slice(label.as_bytes());
     }
     bytes.push(0);
@@ -51,7 +55,7 @@ fn get_qname_bytes(url: String) -> Vec<u8> {
     bytes
 }
 
-fn get_question_entry(url: String) -> Vec<u8> {
+fn get_question_entry(url: &str) -> Vec<u8> {
     let mut message = get_qname_bytes(url);
     message.push(0);
     message.push(1); // set the QTYPE field to A records, which have a value of 1
@@ -63,7 +67,7 @@ fn get_question_entry(url: String) -> Vec<u8> {
 pub fn get_dns_request(url: &str) -> Vec<u8> {
     let mut message = get_header(0xABBA, 0, false, true, 1).to_vec();
 
-    message.extend(get_question_entry(url.to_owned()));
+    message.extend(get_question_entry(url));
 
     message
 }

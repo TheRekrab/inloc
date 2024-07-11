@@ -3,7 +3,7 @@ use crate::{request_builder, response_parser};
 
 const DNS_SERVER: &str = "8.8.8.8:53";
 
-fn send_request(data: &Vec<u8>) -> [u8;512] {
+fn send_request(data: &[u8]) -> [u8;512] {
     let socket = match UdpSocket::bind("0.0.0.0:0") {
         Err(e) => {
             println!("error binding to local socket: {e:?}");
@@ -12,7 +12,7 @@ fn send_request(data: &Vec<u8>) -> [u8;512] {
         Ok(s) => s
     };
 
-    if let Err(e) = socket.send_to(&data, DNS_SERVER) {
+    if let Err(e) = socket.send_to(data, DNS_SERVER) {
         eprintln!("error sending request: {e:?}");
         std::process::exit(1);
     }
@@ -37,8 +37,7 @@ fn send_request(data: &Vec<u8>) -> [u8;512] {
 pub fn get_ip_addresses(url: &str) -> Vec<String> {
     let res = request_builder::get_dns_request(url);
     let response = send_request(&res);
-    let ip_address = response_parser::get_ip(response);
-    ip_address
+    response_parser::get_ip(&response)
 }
 
 

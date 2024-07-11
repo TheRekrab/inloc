@@ -13,10 +13,10 @@ struct LocationData {
     isp: String,
     org: String,
 }
-impl ToString for LocationData {
-    fn to_string(&self) -> String {
+impl std::fmt::Display for LocationData {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         if &self.status != "success" {
-            return format!("error");
+            return write!(f, "error");
         }
         let mut result = Vec::new();
 
@@ -44,19 +44,19 @@ impl ToString for LocationData {
             result.push(format!("isp: {}", self.isp.bold()));
         }
 
-        format!("\t{}", result.join("\n\t"))
+        write!(f, "\t{}", result.join("\n\t"))
     }
 }
 
 pub fn locate(ip: &str) -> String {
     let url = format!("http://ip-api.com/json/{ip}?fields=1066523");
-    match get(&url) {
+    match get(url) {
         Err(e) => {eprintln!("error finding location data for {ip}: {e:?}"); String::new()},
         Ok(content) => {
             // text = content.text().unwrap();
             let data: LocationData = match serde_json::from_reader(content) {
                 Ok(s) => s,
-                Err(e) => {
+                Err(_) => {
                     return format!("invalid response for {}", ip.red().bold()).italic().to_string();
                 }
             };

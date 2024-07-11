@@ -46,32 +46,32 @@ fn parse_response(data: &[u8;512], offset: usize) -> (String, usize) {
     new_offset += 2; // we just read those two bytes.
 
     if rdlength != 4 {
-        eprintln!("rdlength was {}, not 4", rdlength);
+        eprintln!("rdlength was {rdlength}, not 4");
     }
 
-    let ip_addr = format!("{}", data[new_offset..new_offset+4].iter().map(u8::to_string).collect::<Vec<String>>().join("."));
+    let ip_addr = data[new_offset..new_offset+4].iter().map(u8::to_string).collect::<Vec<String>>().join(".");
 
     (ip_addr, new_offset + rdlength as usize)
 
 }
 
-pub fn get_ip(data: [u8;512]) -> Vec<String> {
+pub fn get_ip(data: &[u8;512]) -> Vec<String> {
     // the header is always 12 bytes, so we can parse that bit right now.
-    let (qdcount, ancount) = parse_header(&data);
+    let (qdcount, ancount) = parse_header(data);
     let mut offset = 12;
 
     let mut addresses = Vec::new();
 
     // loop through each query:
     for _ in 0..qdcount {
-        offset = offset_after_query(&data, offset);
+        offset = offset_after_query(data, offset);
     }
 
     //now is the response section, so we'll need to parse the IPs from each
     for _ in 0..ancount {
         let ip_address;
-        (ip_address, offset) = parse_response(&data, offset);
-        addresses.push(ip_address)
+        (ip_address, offset) = parse_response(data, offset);
+        addresses.push(ip_address);
     }
 
     addresses
