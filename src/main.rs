@@ -17,6 +17,11 @@ struct Arguments {
 fn main() {
     let args = Arguments::parse();
 
+    if args.urls.len() + args.ips.len() == 0 {
+        eprintln!("no arguments specified, please use see --help");
+        std::process::exit(1);
+    }
+
     for url in &args.urls {
         let ip_addrs = dns_lookup::get_ip_addresses(url);
         if ip_addrs.is_empty() {
