@@ -5,7 +5,7 @@ fn parse_header(data: &[u8;512]) -> (u16, u16) {
 }
 
 fn offset_after_name(data: &[u8;512], offset: usize) -> usize {
-    if data[offset] & 0b11<<6 != 0 {
+    if data[offset] ^ 0b11<<6 == 0 {
         return offset + 2;
     }
 
