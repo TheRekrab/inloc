@@ -1,38 +1,50 @@
-use clap::Parser;
-use colored::Colorize;
+use std::net::UdpSocket;
 
-mod request_builder;
-mod response_parser;
-mod dns_lookup;
+use dns_components::dns_message::DnsMessage;
+
+mod dns_components;
 mod ip_locator;
 
-#[derive(Parser)]
-struct Arguments {
-    #[arg(short,long)]
-    urls: Vec<String>,
-    #[arg(short,long)]
-    ips: Vec<String>,
-}
+const DNS_SERVER: &str = "8.8.8.8:53";
 
 fn main() {
-    let args = Arguments::parse();
+    println!("{:?}", get_ips("about.google.com"));
+}
 
-    if args.urls.len() + args.ips.len() == 0 {
-        eprintln!("no arguments specified, please use see --help");
-        std::process::exit(1);
+fn get_ips(url: &str) -> Vec<String> {
+    let request = DnsMessage::single_query(url);
+
+    // send the message
+
+    let socket = UdpSocket::bind("0.0.0.0:0");
+    if let Err(e) = socket {
+        eprintln!("failed to bind socket: {e:?}");
+        return Vec::new();
+    }
+    let socket = socket.unwrap();
+
+    if let Err(e) = socket.connect(DNS_SERVER) {
+        eprintln!("could not connect to dns server: {e:?}");
+        return Vec::new();
     }
 
-    for url in &args.urls {
-        let ip_addrs = dns_lookup::get_ip_addresses(url);
-        if ip_addrs.is_empty() {
-            println!("{}: {}", url, "nothing found".red().italic().bold());
-            continue;
-        }
-        println!("\n==== {} ====", url.bold().red());
-        println!("found ip(s):\n{}", ip_addrs.iter().map(|ip| format!("{}:\n{}", ip.bold().cyan(), ip_locator::locate(ip))).collect::<Vec<String>>().join("\n\n"));
+    if let Err(e) = socket.send(&request.to_bytes()) {
+        eprintln!("failed to send request: {e:?}");
+        return Vec::new()
     }
 
-    for ip in &args.ips {
-        println!("\n==== {} ====:\n{}", ip.bold().cyan(), ip_locator::locate(ip));
+    let mut buffer = [0_u8;512];
+    if let Err(e) = socket.recv(&mut buffer) {
+        eprintln!("failed to read from buffer: {e:?}");
+        return Vec::new();
     }
+
+    let response = DnsMessage::parse(&buffer);
+    if let Err(e) = response {
+        eprintln!("failed to read response: {e:?}");
+        return Vec::new();
+    }
+
+    println!("{:#x?}", response.unwrap());
+    Vec::new()
 }
