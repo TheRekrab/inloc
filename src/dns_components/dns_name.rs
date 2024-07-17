@@ -5,6 +5,11 @@ use std::io::{Cursor, Read};
 pub struct DnsLabel {
     pub label: Vec<u8>,
 }
+impl std::fmt::Display for DnsLabel {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", std::str::from_utf8(&self.label).unwrap_or("<invalid>"))
+    }
+}
 impl DnsLabel {
     pub fn get_bytes(&self) -> Vec<u8> {
         let Ok(size) = u8::try_from(self.label.len()) else {
@@ -26,6 +31,11 @@ impl DnsLabel {
 #[derive(Debug, PartialEq, Eq)]
 pub struct DnsName {
     pub labels: Vec<DnsLabel>,
+}
+impl std::fmt::Display for DnsName {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.labels.iter().map(DnsLabel::to_string).collect::<Vec<String>>().join("."))
+    }
 }
 impl DnsName {
     pub fn from_string(name: &str) -> Self {

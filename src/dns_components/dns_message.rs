@@ -100,7 +100,7 @@ mod tests {
 
     pub mod util {
         use super::*;
-        use crate::dns_components::{dns_answer::DnsAnswer, dns_name::{DnsName, DnsLabel}, dns_header::DnsHeader, dns_question::DnsQuestion};
+        use crate::dns_components::{dns_answer::DnsAnswer, dns_header::DnsHeader, dns_name::{DnsLabel, DnsName}, dns_question::DnsQuestion, dns_rdata::DnsRdata};
 
         pub fn msg0_bytes() -> Vec<u8> {
             vec![0xaa, 0xaa, 0x81, 0x80, 0x0, 0x1, 0x0, 0x1, 0x0, 0x0, 0x0, 0x0, 0x7, 0x65, 0x78, 0x61, 0x6d, 0x70, 0x6c, 0x65, 0x3, 0x63, 0x6f, 0x6d, 0x0, 0x0, 0x1, 0x0, 0x1, 0xc0, 0xc, 0x0, 0x1, 0x0, 0x1, 0x0, 0x0, 0xb, 0xbb, 0x0, 0x4, 0x5d, 0xb8, 0xd7, 0xe]
@@ -179,12 +179,13 @@ mod tests {
                         class: 1,
                         ttl: 3003,
                         rdlength: 4,
-                        rdata: vec![
+                        rdata_raw: vec![
                             93,
                             184,
                             215,
                             14,
                         ],
+                        rdata: DnsRdata::IpAddr(vec![93,184,215,14]),
                     },
                 ],
                 authorities: vec![],

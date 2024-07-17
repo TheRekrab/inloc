@@ -8,7 +8,7 @@ mod ip_locator;
 const DNS_SERVER: &str = "8.8.8.8:53";
 
 fn main() {
-    println!("{:?}", get_ips("about.google.com"));
+    get_ips("about.google.com");
 }
 
 fn get_ips(url: &str) -> Vec<String> {

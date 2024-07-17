@@ -1,6 +1,6 @@
 use std::io::{Cursor, Read};
 
-use super::dns_name::{DnsLabel, DnsName};
+use super::{dns_name::DnsName, dns_rdata::DnsRdata};
 
 #[derive(PartialEq, Eq, Debug)]
 pub struct DnsAnswer {
@@ -9,7 +9,8 @@ pub struct DnsAnswer {
     pub class: u16,
     pub ttl: u32,
     pub rdlength: u16,
-    pub rdata: Vec<u8>
+    pub rdata: DnsRdata,
+    pub rdata_raw: Vec<u8>,
 }
 impl DnsAnswer {
     pub fn parse(cursor: &mut Cursor<&[u8]>) -> Result<Self, std::io::Error> {
@@ -31,12 +32,28 @@ impl DnsAnswer {
         cursor.read_exact(&mut rdlength_bytes)?;
         let rdlength = u16::from_be_bytes(rdlength_bytes);
 
-        let mut rdata = Vec::with_capacity(rdlength as usize);
+        let mut rdata_raw = Vec::with_capacity(rdlength as usize);
         for _ in 0..rdlength {
-            rdata.push(0_u8);
+            rdata_raw.push(0_u8);
         }
 
-        cursor.read_exact(&mut rdata)?;
+        cursor.read_exact(&mut rdata_raw)?;
+
+        let rdata = match rtype {
+            1 => DnsRdata::IpAddr(rdata_raw.clone()),
+            5 => {
+                let end_pos = cursor.position();
+                let start_pos = end_pos - rdlength as u64;
+                cursor.set_position(start_pos);
+
+                let name = DnsName::parse(cursor)?;
+                if cursor.position() != end_pos {
+                    cursor.set_position(end_pos); // we should have ended here anyways
+                }
+                DnsRdata::DnsName(name)
+            },
+            _ => return Err(std::io::Error::new(std::io::ErrorKind::Unsupported, format!("invalid type: {rtype}")))
+        };
 
         Ok(Self {
             name,
@@ -44,6 +61,7 @@ impl DnsAnswer {
             class,
             ttl,
             rdlength,
+            rdata_raw,
             rdata,
         })
     }
@@ -61,7 +79,7 @@ impl DnsAnswer {
 
         msg.extend(self.rdlength.to_be_bytes());
 
-        msg.extend(&self.rdata);
+        msg.extend(&self.rdata_raw);
 
         msg
     }
@@ -107,7 +125,8 @@ mod tests {
                 class: 1,
                 ttl: 0,
                 rdlength: 3,
-                rdata: vec![0xAB, 0xBA, 0xDD]
+                rdata_raw: vec![0xAB, 0xBA, 0xDD],
+                rdata: DnsRdata::IpAddr(vec![0xAB, 0xBA, 0xDD]),
             }
         }
     }
