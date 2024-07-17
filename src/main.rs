@@ -1,26 +1,38 @@
 use colored::Colorize;
 use std::{collections::HashMap, net::{Ipv4Addr, UdpSocket}};
+use clap::Parser;
 
 use dns_components::{dns_message::DnsMessage, dns_name::DnsName, dns_rdata::DnsRdata};
 
 mod dns_components;
 mod ip_locator;
 
+#[derive(Parser)]
+struct Arguments {
+    #[arg(short,long)]
+    urls: Vec<String>,
+    #[arg(short,long)]
+    ips: Vec<String>,
+}
+
+
 const DNS_SERVER: &str = "8.8.8.8:53";
 
 fn main() {
-    let url = "about.google.com";
+    let args = Arguments::parse();
 
-    let msg = send_dns_request(url);
-
-    if let Err(e) = msg {
-        eprintln!("{e}");
+    if args.urls.is_empty() && args.ips.is_empty() {
+        eprintln!("no arguments specified; please see --help");
         return;
     }
 
-    let ip_table = msg.unwrap().get_ip_table();
-
-    print_info(url, &ip_table);
+    for url in &args.urls {
+        dns_lookup(url);
+    }
+    for ip in &args.ips {
+        println!("{}", ip.bold());
+        println!("{}", ip_locator::locate(ip));
+    }
 }
 
 fn send_dns_request(url: &str) -> Result<DnsMessage, std::io::Error> {
@@ -67,4 +79,14 @@ fn print_info(url: &str, ip_table: &HashMap<DnsRdata, Vec<DnsRdata>>) {
             }
         }
     }
+}
+
+fn dns_lookup(url: &str) {
+    let msg = send_dns_request(url);
+    if let Err(e) = msg {
+        eprintln!("error: {e}");
+        return;
+    }
+    let ip_table = msg.unwrap().get_ip_table();
+    print_info(url, &ip_table);
 }
