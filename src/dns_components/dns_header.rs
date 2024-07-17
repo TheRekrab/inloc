@@ -1,4 +1,4 @@
-use std::io::{Cursor, Read};
+use std::io::{Cursor, ErrorKind, Read, self};
 
 /// The header of a DNS message. Can be serialized into and out of DNS message form.
 #[derive(PartialEq, Eq, Debug)]
@@ -152,6 +152,13 @@ impl DnsHeader {
         header[11] = arcount_bytes[1];
 
         header
+    }
+}
+
+pub fn get_error(rcode: u8) -> io::Error {
+    match rcode {
+        3 => io::Error::new(ErrorKind::NotFound, "no corresponding DNS record found"),
+        _ => io::Error::new(ErrorKind::Other, format!("nonzero RCODE received in response: {rcode}"))
     }
 }
 

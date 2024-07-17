@@ -1,7 +1,7 @@
 use std::io::{Cursor, Read};
 
 /// simply for ease-of-use, no real functionality
-#[derive(PartialEq, Eq, Debug)]
+#[derive(PartialEq, Eq, Debug, Hash, Clone)]
 pub struct DnsLabel {
     pub label: Vec<u8>,
 }
@@ -28,7 +28,7 @@ impl DnsLabel {
     }
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Hash, Clone)]
 pub struct DnsName {
     pub labels: Vec<DnsLabel>,
 }
@@ -83,10 +83,7 @@ impl DnsName {
                 break; // a pointer is the last bit, I think. if it is not, then we only continue.
             }
             // normal label, continue to read it
-            let mut label = Vec::with_capacity(size as usize);
-            for _ in 0..size {
-                label.push(0_u8);
-            }
+            let mut label = vec![0_u8;usize::from(size)];
             cursor.read_exact(&mut label)?;
             labels.push(DnsLabel::new(label));
         }
@@ -97,7 +94,7 @@ impl DnsName {
     }
 
     pub fn eval_pointer(cursor: &mut Cursor<&[u8]>, addr: u16) -> Result<Vec<DnsLabel>, std::io::Error> {
-        let addr_u64 = addr as u64;
+        let addr_u64 = u64::from(addr);
         let current_addr = cursor.position();
         cursor.set_position(addr_u64);
         let pointer_contents = Self::parse(cursor)?;

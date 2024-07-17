@@ -1,4 +1,4 @@
-use std::io::{Cursor, Read};
+use std::{io::{Cursor, Read}, net::Ipv4Addr};
 
 use super::{dns_name::DnsName, dns_rdata::DnsRdata};
 
@@ -32,18 +32,21 @@ impl DnsAnswer {
         cursor.read_exact(&mut rdlength_bytes)?;
         let rdlength = u16::from_be_bytes(rdlength_bytes);
 
-        let mut rdata_raw = Vec::with_capacity(rdlength as usize);
-        for _ in 0..rdlength {
-            rdata_raw.push(0_u8);
-        }
+        let mut rdata_raw = vec![0_u8;usize::from(rdlength)];
+
 
         cursor.read_exact(&mut rdata_raw)?;
 
         let rdata = match rtype {
-            1 => DnsRdata::IpAddr(rdata_raw.clone()),
+            1 => {
+                if rdlength != 4 {
+                    return Err(std::io::Error::new(std::io::ErrorKind::InvalidData, format!("expected 4 bytes for an IP, got {rdlength}")));
+                }
+                DnsRdata::IpAddr(Ipv4Addr::new(rdata_raw[0], rdata_raw[1], rdata_raw[2], rdata_raw[3]))
+            },
             5 => {
                 let end_pos = cursor.position();
-                let start_pos = end_pos - rdlength as u64;
+                let start_pos = end_pos - u64::from(rdlength);
                 cursor.set_position(start_pos);
 
                 let name = DnsName::parse(cursor)?;
@@ -61,8 +64,8 @@ impl DnsAnswer {
             class,
             ttl,
             rdlength,
-            rdata_raw,
             rdata,
+            rdata_raw,
         })
     }
 
@@ -124,9 +127,9 @@ mod tests {
                 rtype: 1,
                 class: 1,
                 ttl: 0,
-                rdlength: 3,
-                rdata_raw: vec![0xAB, 0xBA, 0xDD],
-                rdata: DnsRdata::IpAddr(vec![0xAB, 0xBA, 0xDD]),
+                rdlength: 4,
+                rdata_raw: vec![0xAB, 0xBA, 0xDD, 0xFE],
+                rdata: DnsRdata::IpAddr(Ipv4Addr::new(0xAB, 0xBA, 0xDD, 0xFE)),
             }
         }
     }

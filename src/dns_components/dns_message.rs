@@ -1,8 +1,12 @@
+use std::collections::HashMap;
 use std::io::Cursor;
 
 use crate::dns_components::dns_header::DnsHeader;
 use crate::dns_components::dns_answer::DnsAnswer;
 use crate::dns_components::dns_question::DnsQuestion;
+
+use super::dns_header;
+use super::dns_rdata::DnsRdata;
 
 #[derive(PartialEq, Eq, Debug)]
 pub struct DnsMessage {
@@ -18,6 +22,10 @@ impl DnsMessage {
         let cursor_ptr = &mut cursor;
 
         let header = DnsHeader::parse(cursor_ptr)?;
+
+        if header.rcode != 0 {
+            return Err(dns_header::get_error(header.rcode));
+        }
 
         let mut questions = Vec::new();
         for _ in 0..header.qdcount {
@@ -89,8 +97,16 @@ impl DnsMessage {
         }
     }
 
-    pub fn get_ips(&self) -> Vec<String> {
-       Vec::new()
+    pub fn get_ip_table(&self) -> HashMap<DnsRdata, Vec<DnsRdata>> {
+        let mut ip_table = HashMap::new();
+        for answer in &self.answers {
+            let key = DnsRdata::DnsName(answer.name.clone());
+            let mut new_val = ip_table.get(&key).unwrap_or(&Vec::new()).clone();
+            new_val.push(answer.rdata.clone());
+
+            ip_table.insert(key, new_val);
+        }
+        ip_table
     }
 }
 
@@ -99,6 +115,8 @@ mod tests {
     use super::*;
 
     pub mod util {
+        use std::net::Ipv4Addr;
+
         use super::*;
         use crate::dns_components::{dns_answer::DnsAnswer, dns_header::DnsHeader, dns_name::{DnsLabel, DnsName}, dns_question::DnsQuestion, dns_rdata::DnsRdata};
 
@@ -185,7 +203,7 @@ mod tests {
                             215,
                             14,
                         ],
-                        rdata: DnsRdata::IpAddr(vec![93,184,215,14]),
+                        rdata: DnsRdata::IpAddr(Ipv4Addr::new(93,184,215,14)),
                     },
                 ],
                 authorities: vec![],

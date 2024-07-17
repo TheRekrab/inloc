@@ -1,23 +1,17 @@
+use std::net::Ipv4Addr;
+
 use crate::dns_components::dns_name::DnsName;
 
-#[derive(PartialEq, Eq, Debug)]
+#[derive(PartialEq, Eq, Debug, Hash, Clone)]
 pub enum DnsRdata {
-    IpAddr(Vec<u8>),
+    IpAddr(Ipv4Addr),
     DnsName(DnsName),
 }
 impl std::fmt::Display for DnsRdata {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::IpAddr(octets) => write!(f, "{}", octets.iter().map(u8::to_string).collect::<Vec<String>>().join(".")),
+            Self::IpAddr(addr) => write!(f, "{addr}"),
             Self::DnsName(name) => write!(f, "{name}")
-        }
-    }
-}
-impl DnsRdata {
-    fn is_ip(&self) -> bool {
-        match self {
-            Self::IpAddr(_) => true,
-            _ => false
         }
     }
 }
