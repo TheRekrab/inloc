@@ -157,8 +157,12 @@ impl DnsHeader {
 
 pub fn get_error(rcode: u8) -> io::Error {
     match rcode {
+        1 => io::Error::new(ErrorKind::InvalidInput, "the name server was unable to interpret the query"),
+        2 => io::Error::new(ErrorKind::Other, "the server failed to process the request"),
         3 => io::Error::new(ErrorKind::NotFound, "no corresponding DNS record found"),
-        _ => io::Error::new(ErrorKind::Other, format!("nonzero RCODE received in response: {rcode}"))
+        4 => io::Error::new(ErrorKind::Unsupported, "the server does not support the request"),
+        5 => io::Error::new(ErrorKind::Other, "the server refused to perform the request"),
+        _ => io::Error::new(ErrorKind::InvalidData, format!("nonzero RCODE received in response: {rcode}"))
     }
 }
 
