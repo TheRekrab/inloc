@@ -162,7 +162,7 @@ pub fn get_error(rcode: u8) -> io::Error {
         3 => io::Error::new(ErrorKind::NotFound, "no corresponding DNS record found"),
         4 => io::Error::new(ErrorKind::Unsupported, "the server does not support the request"),
         5 => io::Error::new(ErrorKind::Other, "the server refused to perform the request"),
-        _ => io::Error::new(ErrorKind::InvalidData, format!("nonzero RCODE received in response: {rcode}"))
+        _ => io::Error::new(ErrorKind::InvalidData, format!("invalid nonzero RCODE received in response: {rcode}"))
     }
 }
 
