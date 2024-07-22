@@ -16,9 +16,9 @@ pub struct DnsHeader {
     pub qdcount: u16,
     /// the number of resource records in the answer section
     pub ancount: u16,
-    /// the number of resourse records in the authority records section
+    /// the number of resource records in the authority records section
     pub nscount: u16,
-    /// the number of resourse records in the additional records section
+    /// the number of resource records in the additional records section
     pub arcount: u16,
 }
 impl DnsHeader {
