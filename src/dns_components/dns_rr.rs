@@ -3,7 +3,7 @@ use std::{io::{Cursor, Read}, net::Ipv4Addr};
 use super::{dns_name::DnsName, dns_rdata::DnsRdata};
 
 #[derive(PartialEq, Eq, Debug)]
-pub struct DnsAnswer {
+pub struct DnsResourceRecord {
     pub name: DnsName,
     pub rtype: u16, // i cannot call it type, even though the field is called TYPE.
     pub class: u16,
@@ -12,7 +12,7 @@ pub struct DnsAnswer {
     pub rdata: DnsRdata,
     pub rdata_raw: Vec<u8>,
 }
-impl DnsAnswer {
+impl DnsResourceRecord {
     pub fn parse(cursor: &mut Cursor<&[u8]>) -> Result<Self, std::io::Error> {
         let name = DnsName::parse(cursor)?;
 
@@ -119,8 +119,8 @@ mod tests {
             msg0
         }
 
-        pub fn msg0_answer() -> DnsAnswer {
-            DnsAnswer {
+        pub fn msg0_answer() -> DnsResourceRecord {
+            DnsResourceRecord {
                 name: DnsName { labels: vec![
                     DnsLabel::new(vec![0xAA, 0xBb, 0xCC, 0xDD, 0xEE]),
                 ] },
@@ -138,7 +138,7 @@ mod tests {
     fn parse_answer_ok() {
         let data = util::msg0_bytes();
         let mut cursor = Cursor::new(&data[..]);
-        let res = DnsAnswer::parse(&mut cursor);
+        let res = DnsResourceRecord::parse(&mut cursor);
         assert!(res.is_ok());
         let answer = res.unwrap();
         assert_eq!(answer, util::msg0_answer());
@@ -148,7 +148,7 @@ mod tests {
     fn parse_answer_ok_longer() {
         let data = util::msg1_bytes();
         let mut cursor = Cursor::new(&data[..]);
-        let res = DnsAnswer::parse(&mut cursor);
+        let res = DnsResourceRecord::parse(&mut cursor);
         assert!(res.is_ok());
         let answer = res.unwrap();
         assert_eq!(answer, util::msg0_answer());
@@ -158,7 +158,7 @@ mod tests {
     fn parse_answer_bad_short() {
         let data = util::msg2_bytes();
         let mut cursor = Cursor::new(&data[..]);
-        let res = DnsAnswer::parse(&mut cursor);
+        let res = DnsResourceRecord::parse(&mut cursor);
         assert!(res.is_err());
     }
 }

@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::io::Cursor;
 
 use crate::dns_components::dns_header::DnsHeader;
-use crate::dns_components::dns_answer::DnsAnswer;
+use crate::dns_components::dns_rr::DnsResourceRecord;
 use crate::dns_components::dns_question::DnsQuestion;
 
 use super::dns_header;
@@ -12,9 +12,9 @@ use super::dns_rdata::DnsRdata;
 pub struct DnsMessage {
     header: DnsHeader,
     questions: Vec<DnsQuestion>,
-    answers: Vec<DnsAnswer>,
-    authorities: Vec<DnsAnswer>,
-    additionals: Vec<DnsAnswer>,
+    answers: Vec<DnsResourceRecord>,
+    authorities: Vec<DnsResourceRecord>,
+    additionals: Vec<DnsResourceRecord>,
 }
 impl DnsMessage {
     pub fn parse(data: &[u8]) -> Result<Self, std::io::Error> {
@@ -35,19 +35,19 @@ impl DnsMessage {
 
         let mut answers = Vec::new();
         for _ in 0..header.ancount {
-            let rr = DnsAnswer::parse(cursor_ptr)?;
+            let rr = DnsResourceRecord::parse(cursor_ptr)?;
             answers.push(rr);
         }
 
         let mut authority = Vec::new();
         for _  in 0..header.nscount {
-            let rr = DnsAnswer::parse(cursor_ptr)?;
+            let rr = DnsResourceRecord::parse(cursor_ptr)?;
             authority.push(rr);
         }
 
         let mut additional = Vec::new();
         for _ in 0..header.arcount {
-            let rr = DnsAnswer::parse(cursor_ptr)?;
+            let rr = DnsResourceRecord::parse(cursor_ptr)?;
             additional.push(rr);
         }
 
@@ -118,7 +118,7 @@ mod tests {
         use std::net::Ipv4Addr;
 
         use super::*;
-        use crate::dns_components::{dns_answer::DnsAnswer, dns_header::DnsHeader, dns_name::{DnsLabel, DnsName}, dns_question::DnsQuestion, dns_rdata::DnsRdata};
+        use crate::dns_components::{dns_rr::DnsResourceRecord, dns_header::DnsHeader, dns_name::{DnsLabel, DnsName}, dns_question::DnsQuestion, dns_rdata::DnsRdata};
 
         pub fn msg0_bytes() -> Vec<u8> {
             vec![0xaa, 0xaa, 0x81, 0x80, 0x0, 0x1, 0x0, 0x1, 0x0, 0x0, 0x0, 0x0, 0x7, 0x65, 0x78, 0x61, 0x6d, 0x70, 0x6c, 0x65, 0x3, 0x63, 0x6f, 0x6d, 0x0, 0x0, 0x1, 0x0, 0x1, 0xc0, 0xc, 0x0, 0x1, 0x0, 0x1, 0x0, 0x0, 0xb, 0xbb, 0x0, 0x4, 0x5d, 0xb8, 0xd7, 0xe]
@@ -170,7 +170,7 @@ mod tests {
                     },
                 ],
                 answers: vec![
-                    DnsAnswer {
+                    DnsResourceRecord {
                         name: DnsName {
                             labels: vec![
                                 DnsLabel {
