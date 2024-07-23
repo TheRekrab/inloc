@@ -42,7 +42,7 @@ impl DnsResourceRecord {
                 if rdlength != 4 {
                     return Err(std::io::Error::new(std::io::ErrorKind::InvalidData, format!("expected 4 bytes for an IP, got {rdlength}")));
                 }
-                DnsRdata::IpAddr(Ipv4Addr::new(rdata_raw[0], rdata_raw[1], rdata_raw[2], rdata_raw[3]))
+                DnsRdata::ARecord(Ipv4Addr::new(rdata_raw[0], rdata_raw[1], rdata_raw[2], rdata_raw[3]))
             },
             5 => {
                 let end_pos = cursor.position();
@@ -53,7 +53,7 @@ impl DnsResourceRecord {
                 if cursor.position() != end_pos {
                     cursor.set_position(end_pos); // we should have ended here anyways
                 }
-                DnsRdata::DnsName(name)
+                DnsRdata::CnameRecord(name)
             },
             _ => return Err(std::io::Error::new(std::io::ErrorKind::Unsupported, format!("invalid type: {rtype}")))
         };
@@ -129,7 +129,7 @@ mod tests {
                 ttl: 0,
                 rdlength: 4,
                 rdata_raw: vec![0xAB, 0xBA, 0xDD, 0xFE],
-                rdata: DnsRdata::IpAddr(Ipv4Addr::new(0xAB, 0xBA, 0xDD, 0xFE)),
+                rdata: DnsRdata::ARecord(Ipv4Addr::new(0xAB, 0xBA, 0xDD, 0xFE)),
             }
         }
     }

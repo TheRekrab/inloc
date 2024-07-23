@@ -100,7 +100,7 @@ impl DnsMessage {
     pub fn get_ip_table(&self) -> HashMap<DnsRdata, Vec<DnsRdata>> {
         let mut ip_table = HashMap::new();
         for answer in &self.answers {
-            let key = DnsRdata::DnsName(answer.name.clone());
+            let key = DnsRdata::CnameRecord(answer.name.clone());
             let mut new_val = ip_table.get(&key).unwrap_or(&Vec::new()).clone();
             new_val.push(answer.rdata.clone());
 
@@ -203,7 +203,7 @@ mod tests {
                             215,
                             14,
                         ],
-                        rdata: DnsRdata::IpAddr(Ipv4Addr::new(93,184,215,14)),
+                        rdata: DnsRdata::ARecord(Ipv4Addr::new(93,184,215,14)),
                     },
                 ],
                 authorities: vec![],

@@ -4,14 +4,14 @@ use crate::dns_components::dns_name::DnsName;
 
 #[derive(PartialEq, Eq, Debug, Hash, Clone)]
 pub enum DnsRdata {
-    IpAddr(Ipv4Addr),
-    DnsName(DnsName),
+    ARecord(Ipv4Addr),
+    CnameRecord(DnsName),
 }
 impl std::fmt::Display for DnsRdata {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::IpAddr(addr) => write!(f, "{addr}"),
-            Self::DnsName(name) => write!(f, "{name}")
+            Self::ARecord(addr) => write!(f, "{addr}"),
+            Self::CnameRecord(name) => write!(f, "{name}")
         }
     }
 }

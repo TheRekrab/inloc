@@ -63,18 +63,18 @@ fn print_name_info(data: &DnsRdata, name: &DnsName) {
 
 fn print_data(data: &DnsRdata, name: &DnsRdata) {
     match data {
-        DnsRdata::IpAddr(addr) => print_ip_info(name, *addr),
-        DnsRdata::DnsName(next_name) => print_name_info(name, next_name),
+        DnsRdata::ARecord(addr) => print_ip_info(name, *addr),
+        DnsRdata::CnameRecord(next_name) => print_name_info(name, next_name),
     }
 }
 
 fn print_info(url: &str, ip_table: &HashMap<DnsRdata, Vec<DnsRdata>>) {
     let name = DnsName::from_string(url);
-    let key = DnsRdata::DnsName(name);
+    let key = DnsRdata::CnameRecord(name);
     if let Some(results) = ip_table.get(&key) {
         for res in results {
             print_data(res, &key);
-            if let DnsRdata::DnsName(new_name) = res {
+            if let DnsRdata::CnameRecord(new_name) = res {
                 print_info(&new_name.to_string(), ip_table);
             }
         }
